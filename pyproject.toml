@@ -11,6 +11,7 @@ dependencies = []
 
 [project.scripts]
 valid-input = "random_explorer.valid_input:main"
+plot-environment = "random_explorer.plot_environment:main"
 
 [build-system]
 requires = ["uv_build>=0.9.26,<0.10.0"]
