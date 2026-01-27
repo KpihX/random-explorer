@@ -8,6 +8,7 @@ authors = [
 ]
 requires-python = ">=3.11"
 dependencies = [
+    "kagglehub>=0.4.1",
     "matplotlib>=3.10.8",
     "numpy>=2.4.1",
     "pyyaml>=6.0.3",
