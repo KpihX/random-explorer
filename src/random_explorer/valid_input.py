@@ -1,5 +1,12 @@
-def valid_input() : 
-    with open('data/scenario2.txt', 'r', encoding = 'utf-8') as f:
+import sys
+from .utils import Console
+
+from .config import load_config
+
+console = Console()
+
+def valid_input(file_path:str) : 
+    with open(file_path, 'r', encoding = 'utf-8') as f:
         count =1
         xmax=0
         ymax=0
@@ -39,5 +46,13 @@ def valid_input() :
             count +=1
         return [xmax,ymax,u_s1,u_d1, u_s2, u_d2, R, obs]
     
-def main():
-    print(valid_input())
+def main(file_path:str=""):
+    if file_path is None or file_path == "":
+        config = load_config()
+        if config is None:
+            sys.exit(1)
+
+        file_path = config.get("file_path", "data/scenario0.txt")
+
+    console.display(valid_input(file_path), "valid-input", border_style="green")
+
