@@ -9,8 +9,8 @@ class Console(RichConsole):
 
         self.print(Panel(content, title=title, style=style, border_style=border_style, highlight=True, expand=True))
 
-    def display_error(self, msg):
-        self.display(msg, title="Error", style="bold red", border_style="red")
+    def display_error(self, msg, title="Error"):
+        self.display(msg, title=title, style="bold red", border_style="red")
 
     def print_error(self, msg):
         self.print(f"[bold red]Error:[/] {msg}")

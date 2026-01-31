@@ -2,8 +2,8 @@ import typer
 
 from typing import Optional
 
-from .valid_input import main as valid_input
-from .plot_environment import main as plot_environment
+from .scripts.valid_input import main as valid_input
+from .scripts.plot_environment import main as plot_environment
 
 app = typer.Typer()
 

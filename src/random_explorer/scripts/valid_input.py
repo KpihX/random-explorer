@@ -1,7 +1,6 @@
 import sys
-from .utils import Console
-
-from .config import load_config
+from ..utils import Console
+from ..config import load_config
 
 console = Console()
 

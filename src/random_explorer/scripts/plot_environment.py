@@ -3,8 +3,8 @@ import matplotlib.patches as patches
 import sys
 
 from .valid_input import valid_input
-from .utils import Console
-from .config import load_config
+from ..utils import Console
+from ..config import load_config
 
 console = Console()
 
