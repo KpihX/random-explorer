@@ -24,6 +24,7 @@ random-explorer = "random_explorer.cli:app"
 valid-input = "random_explorer.scripts.valid_input:main"
 plot-environment = "random_explorer.scripts.plot_environment:main"
 
+
 [build-system]
 requires = ["uv_build>=0.9.26,<0.10.0"]
 build-backend = "uv_build"
