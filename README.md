@@ -1,81 +1,131 @@
-# INF421 — Path Planning Algorithms — Random Explorer
+# Random Explorer — INF421 Path Planning Algorithms
 
-**Auteurs**
+**Auteurs** : Pacifique000 & KpihX  
+**École Polytechnique (l'X)** — Cours INF421
 
-- Pacifique000
-- KpihX
+![Python](https://img.shields.io/badge/Python-3.11%2B-blue)
+![License](https://img.shields.io/badge/License-MIT-green)
+![Status](https://img.shields.io/badge/Status-Active-success)
 
-## Description
+## 📌 Description
 
-Ce projet est développé dans le cadre du cours INF421. Il fournit des outils pour analyser, valider et visualiser des environnements de planification de chemin (Path Planning) à partir de fichiers de scénarios textuels.
+Ce projet implémente et compare des algorithmes de planification de chemin (**Path Planning**) dans des environnements 2D statiques avec obstacles. Il a été développé dans le cadre des Travaux Pratiques du cours INF421.
 
-L'application permet de parser des configurations d'obstacles, de points de départ et d'arrivée, et de les représenter graphiquement pour tester des algorithmes de recherche de chemin (comme RRT).
+Il se concentre sur deux familles d'algorithmes :
+1.  **PSO (Particle Swarm Optimization)** et ses variantes avancées.
+2.  **RRT\* (Rapidly-exploring Random Tree Star)** pour la recherche basée sur l'échantillonnage.
 
-## Installation
+Le projet inclut une visualisation riche, un système de benchmarking complet, et une optimisation d'hyperparamètres via Grid Search.
 
-Ce projet utilise [uv](https://github.com/astral-sh/uv) pour la gestion des dépendances.
+## 🚀 Fonctionnalités Clés
 
-### Prérequis
+### 🧠 Algorithmes Implémentés
+*   **PSO Basic** : Optimisation par essaim particulaire standard pour minimiser la longueur du chemin et les collisions.
+*   **PSO Variants** (Architecture modulaire) :
+    *   `PSORestart` : Réinitialisation périodique pour échapper aux optima locaux.
+    *   `PSOSimulatedAnnealing` (SA) : Acceptation probabiliste de solutions dégradées (Metropolis criterion).
+    *   `PSODimensionalLearning` (DL) : Apprentissage dimension par dimension pour les particules stagnantes (Xu et al., 2019).
+    *   `PSOAdaptiveInertia` : Poids d'inertie linéairement décroissant + Early Stopping.
+*   **RRT\*** : Version optimisée asymptotiquement optimale du RRT avec rewiring.
 
-- Python 3.11 ou supérieur
-- `uv`
+### 🛠️ Outils & Infrastructure
+*   **Visualisation** : Plotting via `matplotlib` des environnements, obstacles, chemins et arbres de recherche.
+*   **Benchmarks** : Comparaison automatisée (temps, longueur, taux de succès) entre algorithmes.
+*   **Grid Search** : Script parallélisé (`ProcessPoolExecutor`) pour tuner les hyperparamètres.
+*   **Robustesse** : Gestion des collisions Soft (pénalité proportionnelle) et Hard.
+*   **Interface** : CLI moderne avec `typer` et feedback visuel avec `rich` et `tqdm`.
 
-### Configuration de l'environnement
-
-```bash
-# Installation des dépendances et de l'environnement virtuel
-uv sync
-```
-
-## Utilisation
-
-Le projet expose une interface en ligne de commande (CLI) avec plusieurs commandes.
-
-### Visualiser un environnement
-
-Pour afficher graphiquement l'environnement défini dans un fichier texte :
-
-```bash
-uv run plot-environment 
-```
-
-Cela générera une fenêtre matplotlib affichant les limites, la grille, les obstacles, ainsi que les points de départ et d'arrivée.
-
-### Valider un fichier d'entrée
-
-Pour vérifier si un fichier de scénario est correctement formaté :
+## 📂 Structure du Projet
 
 ```bash
-uv run valid-input
+random-explorer/
+├── data/                       # Scénarios de test (.txt) et résultats JSON
+├── src/random_explorer/
+│   ├── environment.py          # Parsing, collisions (Liang-Barsky), affichage
+│   ├── rrt_planner.py          # Implémentation RRT*
+│   ├── benchmark.py            # Moteur de benchmark
+│   ├── pso/                    # Package des variantes PSO
+│   │   ├── path_planner.py     # PSO Base
+│   │   ├── restart.py          # + Random Restart
+│   │   ├── simulated_annealing.py
+│   │   ├── dimensional_learning.py
+│   │   └── adaptive_inertia.py
+│   └── scripts/                # Entry points CLI
+├── Random_Explorer.ipynb       # Rapport exécutable (Notebook Jupyter)
+├── pyproject.toml              # Configuration et dépendances
+└── README.md
 ```
 
-## Format des Données (Fichiers Scénarios)
+## 📦 Installation
 
-Les fichiers d'entrée (ex: `data/scenario0.txt`) suivent une structure stricte ligne par ligne :
+Ce projet utilise [uv](https://github.com/astral-sh/uv) pour une gestion ultra-rapide des dépendances.
 
-| Ligne(s) | Variable   | Description                                                         |
-| -------- | ---------- | ------------------------------------------------------------------- |
-| 1        | `xmax`   | Limite maximale en X de l'environnement                             |
-| 2        | `ymax`   | Limite maximale en Y de l'environnement                             |
-| 3        | `u_s1.x` | Coordonnée X du point de départ 1                                 |
-| 4        | `u_s1.y` | Coordonnée Y du point de départ 1                                 |
-| 5        | `u_d1.x` | Coordonnée X de la destination 1                                   |
-| 6        | `u_d1.y` | Coordonnée Y de la destination 1                                   |
-| 7        | `u_s2.x` | Coordonnée X du point de départ 2                                 |
-| 8        | `u_s2.y` | Coordonnée Y du point de départ 2                                 |
-| 9        | `u_d2.x` | Coordonnée X de la destination 2                                   |
-| 10       | `u_d2.y` | Coordonnée Y de la destination 2                                   |
-| 11       | `R`      | Paramètre de rayon ou pas                                          |
-| 12+      | `Obs`    | Obstacles. Chaque ligne contient 4 valeurs :`x y largeur hauteur` |
+1.  **Cloner le dépôt**
+    ```bash
+    git clone https://github.com/KpihX/random-explorer.git
+    cd random-explorer
+    ```
 
-**Exemple de ligne d'obstacle :**
+2.  **Installer l'environnement**
+    ```bash
+    uv sync
+    ```
 
-```text
-10.0 15.0 5.0 5.0
+## 🎮 Utilisation
+
+### Via le CLI (Ligne de Commande)
+
+Le projet expose plusieurs commandes via `uv run` :
+
+**1. Visualiser un scénario**
+Affiche l'environnement, le départ, l'arrivée et les obstacles.
+```bash
+uv run plot-environment --file data/scenario0.txt
 ```
 
-Définit un rectangle à la position (10, 15) de largeur 5 et hauteur 5.
+**2. Valider un fichier d'entrée**
+Vérifie le format et les contraintes d'un fichier scénario.
+```bash
+uv run valid-input --file data/scenario0.txt
+```
 
-## Documentation
+**3. Lancer un Grid Search PSO**
+Lance une recherche d'hyperparamètres parallélisée pour optimiser les variantes PSO.
+```bash
+uv run grid-search --scenario data/scenario2.txt --workers 8
+```
 
-Pour plus de détails théoriques et complets sur le projet, veuillez vous référer au fichier `Random_Explorer.pdf`.
+### Via le Notebook Jupyter
+
+Le fichier `Random_Explorer.ipynb` est le point d'entrée principal pour explorer les réponses aux questions du TP. Il contient :
+*   Les explications théoriques (avec formules LaTeX).
+*   L'exécution pas-à-pas des algorithmes.
+*   Les courbes de convergence et les comparaisons visuelles.
+
+Pour le lancer :
+```bash
+uv run jupyter lab Random_Explorer.ipynb
+```
+
+## 📊 Format des Données (Scénarios)
+
+Les fichiers `.txt` dans `data/` suivent ce format strict :
+
+| Ligne | Contenu                | Description                             |
+| ----- | ---------------------- | --------------------------------------- |
+| 1-2   | `width`, `height`      | Dimensions de l'environnement           |
+| 3-4   | `start1_x`, `start1_y` | Point de départ 1 (utilisé par PSO/RRT) |
+| 5-6   | `goal1_x`, `goal1_y`   | Objectif 1                              |
+| 7-10  | ...                    | Points pour Robot 2 (optionnel)         |
+| 11    | `R`                    | Rayon de sécurité                       |
+| 12+   | `x y w h`              | Liste des obstacles (rectangles)        |
+
+## 🧪 Résultats & Performance
+
+Les résultats des benchmarks montrent que :
+*   **RRT\*** est généralement plus robuste et garantit (probabilistiquement) de trouver un chemin s'il existe.
+*   **PSO** est très rapide sur des environnements simples mais nécessite un tuning fin (d'où l'importance du Grid Search et des variantes comme *Adaptive Inertia*).
+*   L'implémentation **vectorisée** (numpy) assure de bonnes performances même avec de nombreuses particules.
+
+---
+*Projet réalisé pour le cours INF421 - 2025/2026*
