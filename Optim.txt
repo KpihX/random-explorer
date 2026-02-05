@@ -11,3 +11,13 @@ and Evolutionary Computation, 45:33–51, March 2019.
     - improved pour la question 8
 
 - Q12 : Own improvement
+
+- Q7 : Revisiter detection soft de la longueur de l'intersection d'un segment avec des obstacles
+
+- Q3: Check articles for the fitness function
+
+- Q8 : clipping de Liang-Barsky for soft
+
+- Q12 : grid_search ?
+
+- Q16 : **Note :** Avec un KD-tree pour le nearest neighbor et la recherche de voisins, on peut réduire à $O(K \cdot M \cdot \log K)$.

@@ -16,13 +16,15 @@ dependencies = [
     "python-dotenv>=1.2.1",
     "pyyaml>=6.0.3",
     "rich>=14.3.1",
+    "tqdm>=4.66.0",
     "typer>=0.21.1",
 ]
 
 [project.scripts]
-random-explorer = "random_explorer.cli:app"
+random-explorer = "random_explorer.scripts.cli:app"
 valid-input = "random_explorer.scripts.valid_input:main"
 plot-environment = "random_explorer.scripts.plot_environment:main"
+grid-search = "random_explorer.scripts.grid_search:main"
 
 
 [build-system]
