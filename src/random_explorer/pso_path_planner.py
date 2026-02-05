@@ -178,7 +178,7 @@ class PSOPathPlanner:
     def solve(self, **kwargs):
         """Run the PSO algorithm to find the optimal path."""
 
-        for k in range(self.max_iter):
+        for _ in range(self.max_iter):
             for i in range(self.S):
                 score = self._calculate_fitness(self.X[i], **kwargs)
                 

@@ -1,0 +1,13 @@
+- Q5: update pseudo-code with new soft approach
+- Q6: update complexity with new soft approach
+- Q8: 
+    - test all the scanarios
+    - grid-search oriented
+- Q9 (Restart): k least lower elts, not sort all
+- Q11: 
+    - check : Guiping Xu, Quanlong Cui, Xiaohu Shi, Hongwei Ge, Zhi-Hui Zhan, Heow Pueh Lee, Yanchun Liang,
+Ran Tai, and Chunguo Wu. Particle swarm optimization based on dimensional learning strategy. Swarm
+and Evolutionary Computation, 45:33–51, March 2019.
+    - improved pour la question 8
+
+- Q12 : Own improvement

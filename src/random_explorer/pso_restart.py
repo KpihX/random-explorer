@@ -4,15 +4,19 @@ import time
 from .environment import Environment
 from .pso_path_planner import PSOPathPlanner
 
-class PSOPathPlannerUpgrade (PSOPathPlanner):
+class PSORestart (PSOPathPlanner):
     COLISION_PENALTY_HARD = 10000.0
     COLISION_WEIGHT_SOFT = 100.0
     BASE_PENALTY_SOFT = 1000.0
-    def __init__(self, env:Environment, num_particles=50, num_waypoints=5, max_iter=100, w=0.7, c1=1.4, c2=1.4):
-        super().__init__(env, num_particles, num_waypoints, max_iter, w, c1, c2)
+    def __init__(self, env:Environment, restart_frequency=20, elite_ratio=0.1, **kwargs):
+        # kwargs can include num_particles, num_waypoints, max_iter, w, c1, c2
+        super().__init__(env, **kwargs)
+        self.restart_frequency = restart_frequency # fréquence de random restart
+        self.elite_ratio = elite_ratio # proportion des meilleures particules à conserver lors
+
         self.num_restarts = 0 # nous permettra de connaitre le nombre de fois qu'on a relancé l'algo
 
-    def solveup(self, restart_frequency=0, elite_ratio=0.1, **kwargs):
+    def solve(self, **kwargs):
         """
         Exécute l'algorithme PSO avec possibilité de random restart.
         
@@ -46,9 +50,7 @@ class PSOPathPlannerUpgrade (PSOPathPlanner):
             self.X[:, :, 1] = np.clip(self.X[:, :, 1], 0, self.env.y_max)
             
             # Random restart
-            if restart_frequency > 0 and (k + 1) % restart_frequency == 0 and k < self.max_iter - 1:
-                self._random_restart(elite_ratio)
-                self.num_restarts += 1
+            self._run_random_restart(k)
         
         if self.G_best is not None:
             final_path = np.vstack([self.env.start, self.G_best, self.env.goal])
@@ -56,16 +58,27 @@ class PSOPathPlannerUpgrade (PSOPathPlanner):
         else:
             return None, np.inf, self.history
     
-    def _random_restart(self, elite_ratio=0.1):
+    def _run_random_restart(self, k):
+        """
+        Effectue un random restart si la condition est remplie.
+        
+        Args:
+            k: itération courante
+        """
+        if self.restart_frequency > 0 and (k + 1) % self.restart_frequency == 0 and k < self.max_iter - 1:
+            self._random_restart(self.elite_ratio)
+            self.num_restarts += 1
+
+    def _random_restart(self):
         """
         Réinitialise aléatoirement la majorité des particules tout en conservant
-        les meilleures .
+        les meilleures.
         
         Args:
             elite_ratio: Proportion des meilleures particules à conserver (0.0 à 1.0)
         """
         # Nombre de particules élites à conserver
-        num_elites = max(1, int(self.S * elite_ratio))
+        num_elites = max(1, int(self.S * self.elite_ratio))
         
         # Trier les particules par score
         sorted_indices = np.argsort(self.P_best_scores)
