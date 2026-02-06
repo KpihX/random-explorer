@@ -1,40 +1,98 @@
+"""Utility functions and classes for eikonale_explorer.
+
+This module provides helper utilities used across the package,
+including console output formatting.
+"""
+
+from typing import Any, Union
 from rich.console import Console as RichConsole
 from rich.panel import Panel
-from rich.table import Table
-from rich import box
-from typing import Any, List, Optional
+from rich.pretty import Pretty
 
-class Console:
-    """Wrapper around rich.console.Console for standardized output."""
+
+class Console(RichConsole):
+    """Enhanced console for formatted output.
     
-    def __init__(self):
-        self._console = RichConsole()
+    Extends Rich Console with convenience methods for displaying
+    formatted panels and error messages.
+    """
+    
+    def display(
+        self,
+        content: Union[str, Any],
+        title: str = "",
+        style: str = "none",
+        border_style: str = "none"
+    ) -> None:
+        """Display content in a formatted panel.
         
-    def print(self, *args, **kwargs):
-        self._console.print(*args, **kwargs)
+        Args:
+            content: Text or object to display.
+            title: Panel title.
+            style: Text style.
+            border_style: Panel border style.
+        """
+        if not isinstance(content, str):
+            content = Pretty(content)
         
-    def panel(self, content: Any, title: str = "", style: str = "blue"):
-        self._console.print(Panel(str(content), title=title, style=style, expand=False))
+        self.print(Panel(
+            content,
+            title=title,
+            style=style,
+            border_style=border_style,
+            highlight=True,
+            expand=True
+        ))
+    
+    def display_error(self, msg: str, title: str = "Error") -> None:
+        """Display an error message in a red panel.
         
-    def error(self, message: str):
-        self._console.print(Panel(message, title="Error", style="bold red"))
+        Args:
+            msg: Error message text.
+            title: Panel title (default: "Error").
+        """
+        self.display(
+            msg,
+            title=title,
+            style="bold red",
+            border_style="red"
+        )
+    
+    def print_error(self, msg: str) -> None:
+        """Print an inline error message.
         
-    def success(self, message: str):
-        self._console.print(f"[bold green]✓[/bold green] {message}")
-        
-    def info(self, message: str):
-        self._console.print(f"[blue]ℹ[/blue] {message}")
-        
-    def warning(self, message: str):
-        self._console.print(f"[yellow]⚠[/yellow] {message}")
+        Args:
+            msg: Error message text.
+        """
+        self.print(f"[bold red]Error:[/] {msg}")
 
-    def table(self, title: str, columns: List[str], rows: List[List[Any]]):
-        table = Table(title=title, box=box.ROUNDED)
-        for col in columns:
-            table.add_column(col)
-        for row in rows:
-            table.add_row(*[str(r) for r in row])
-        self._console.print(table)
+    def success(self, msg: str) -> None:
+        """Print a success message.
+        
+        Args:
+            msg: Message text.
+        """
+        self.print(f"[bold green]✓[/] {msg}")
 
-# Global console instance
+    def info(self, msg: str) -> None:
+        """Print an info message.
+        
+        Args:
+            msg: Message text.
+        """
+        self.print(f"[bold blue]ℹ[/] {msg}")
+        
+    def warning(self, msg: str) -> None:
+        """Print a warning message.
+        
+        Args:
+            msg: Message text.
+        """
+        self.print(f"[bold yellow]⚠[/] {msg}")
+
+    def panel(self, content: Any, title: str = "", style: str = "blue") -> None:
+        """Legacy alias for display (kept for compatibility with my previous code)."""
+        self.display(content, title=title, border_style=style)
+
+# Global instance for convenience
 console = Console()
