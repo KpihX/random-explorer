@@ -113,12 +113,12 @@ class PathFinder:
             path.append(current_pos.copy())
             
             if np.linalg.norm(current_pos - target) < tol:
-                console.success("Euler path reconstruction reached target.")
+                console.print_success("Euler path reconstruction reached target.")
                 break
                 
             # Bounds check
             if not (0 <= current_pos[0] <= (nx-1)*h and 0 <= current_pos[1] <= (ny-1)*h):
-                console.warning("Path went out of bounds.")
+                console.print_warning("Path went out of bounds.")
                 break
                 
         return np.array(path)[::-1] # Reverse to get Start -> Goal
@@ -163,7 +163,7 @@ class PathFinder:
             path.append(current_pos.copy())
             
             if np.linalg.norm(current_pos - target) < tol:
-                console.success("Heun path reconstruction reached target.")
+                console.print_success("Heun path reconstruction reached target.")
                 break
                 
         return np.array(path)[::-1]

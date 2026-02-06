@@ -9,7 +9,7 @@ from ..utils import console
 
 def main(file_path: str, grid_size: int = 128, max_iter: int = 5000, output_path: str = None):
     """Main solver pipeline."""
-    console.panel(f"Solving Eikonal for {file_path}", title="Startup")
+    console.display_panel(f"Solving Eikonal for {file_path}", title="Startup")
     
     # 1. Load Environment
     env = Environment(file_path)
@@ -19,7 +19,7 @@ def main(file_path: str, grid_size: int = 128, max_iter: int = 5000, output_path
     nx = int(env.width / h)
     ny = int(env.height / h)
     
-    console.info(f"Grid: {nx}x{ny} (h={h:.4f})")
+    console.print_info(f"Grid: {nx}x{ny} (h={h:.4f})")
     
     # Generate Index Map (Cost)
     # 1.0 in free space, 100.0 in obstacles
@@ -27,12 +27,12 @@ def main(file_path: str, grid_size: int = 128, max_iter: int = 5000, output_path
     
     # 3. Solve Eikonal Equation (Value Function)
     solver = LaxFriedrichsSolver(max_iter=max_iter, tol=1e-6)
-    console.info("Running Lax-Friedrichs Solver...")
+    console.print_info("Running Lax-Friedrichs Solver...")
     
     phi = solver.solve(N_map, env.start, h)
     
     # 4. Path Reconstruction (Gradient Descent)
-    console.info("Reconstructing path (Heun's method)...")
+    console.print_info("Reconstructing path (Heun's method)...")
     path = PathFinder.solve_heun(phi, env.start, env.goal, h)
     
     # 5. Authorization / Validation (Did we hit start?)
@@ -40,7 +40,7 @@ def main(file_path: str, grid_size: int = 128, max_iter: int = 5000, output_path
     # Wait: solve_heun returns path from START to GOAL (reversed internally)
     dist_error = np.linalg.norm(path[0] - env.start)
     if dist_error > h * 2:
-        console.warning(f"Path start deviation: {dist_error:.2f}")
+        console.print_warning(f"Path start deviation: {dist_error:.2f}")
     
     # 6. Visualization
     fig, ax = plt.subplots(figsize=(10, 8))
@@ -64,16 +64,16 @@ def main(file_path: str, grid_size: int = 128, max_iter: int = 5000, output_path
     # Plot Path
     if len(path) > 1:
         ax.plot(path[:, 0], path[:, 1], 'b-', linewidth=2, label='Eikonal Path')
-        console.success(f"Path found! Length: {len(path)} steps.")
+        console.print_success(f"Path found! Length: {len(path)} steps.")
     else:
-        console.error("Path reconstruction failed.")
+        console.display_error("Path reconstruction failed.")
         
     ax.legend()
     ax.set_title(f"Eikonal Path Planning - {Path(file_path).name}")
     
     if output_path:
         plt.savefig(output_path)
-        console.success(f"Saved plot to {output_path}")
+        console.print_success(f"Saved plot to {output_path}")
     else:
         plt.show()
 

@@ -99,7 +99,7 @@ class LaxFriedrichsSolver(EikonalSolver):
             diff = np.max(np.abs(phi - phi_old))
             if diff < self.tol:
                 if show_progress:
-                    console.success(f"Converged difference {diff:.2e} < {self.tol} at iter {k}")
+                    console.print_success(f"Converged difference {diff:.2e} < {self.tol} at iter {k}")
                 break
                 
         return phi

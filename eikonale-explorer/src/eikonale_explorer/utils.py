@@ -66,7 +66,7 @@ class Console(RichConsole):
         """
         self.print(f"[bold red]Error:[/] {msg}")
 
-    def success(self, msg: str) -> None:
+    def print_success(self, msg: str) -> None:
         """Print a success message.
         
         Args:
@@ -74,7 +74,7 @@ class Console(RichConsole):
         """
         self.print(f"[bold green]✓[/] {msg}")
 
-    def info(self, msg: str) -> None:
+    def print_info(self, msg: str) -> None:
         """Print an info message.
         
         Args:
@@ -82,7 +82,7 @@ class Console(RichConsole):
         """
         self.print(f"[bold blue]ℹ[/] {msg}")
         
-    def warning(self, msg: str) -> None:
+    def print_warning(self, msg: str) -> None:
         """Print a warning message.
         
         Args:
@@ -90,8 +90,8 @@ class Console(RichConsole):
         """
         self.print(f"[bold yellow]⚠[/] {msg}")
 
-    def panel(self, content: Any, title: str = "", style: str = "blue") -> None:
-        """Legacy alias for display (kept for compatibility with my previous code)."""
+    def display_panel(self, content: Any, title: str = "", style: str = "blue") -> None:
+        """Legacy alias for display."""
         self.display(content, title=title, border_style=style)
 
 # Global instance for convenience

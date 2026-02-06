@@ -55,10 +55,10 @@ class Environment:
                 if len(parts) >= 4:
                     self.obstacles.append((parts[0], parts[1], parts[2], parts[3]))
                     
-            console.success(f"Parsed environment from {path.name}: {len(self.obstacles)} obstacles.")
+            console.print_success(f"Parsed environment from {path.name}: {len(self.obstacles)} obstacles.")
             
         except (ValueError, IndexError) as e:
-            console.error(f"Error parsing file {file_path}: {e}")
+            console.display_error(f"Error parsing file {file_path}: {e}")
             raise
 
     def get_refractive_index_map(self, nx: int, ny: int, base_index: float = 1.0, obstacle_index: float = 100.0) -> np.ndarray:
