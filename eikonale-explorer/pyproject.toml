@@ -1,0 +1,28 @@
+[project]
+name = "eikonale-explorer"
+version = "0.1.0"
+description = "Eikonal Equation Solver for Path Planning (FMM/Lax-Friedrichs) - Refactored from INF421 TP7"
+readme = "README.md"
+authors = [
+    { name = "KpihX", email = "kapoivha@gmail.com"},
+    { name = "Pacifique000", email = "ngantaangepacifique@gmail.com" }
+]
+requires-python = ">=3.11"
+dependencies = [
+    "ipykernel>=7.1.0",
+    "matplotlib>=3.10.0",
+    "numpy>=1.26.0",
+    "python-dotenv>=1.0.0",
+    "pyyaml>=6.0.1",
+    "rich>=13.7.0",
+    "tqdm>=4.66.0",
+    "typer>=0.9.0",
+]
+
+[project.scripts]
+eikonal-explorer = "eikonale_explorer.scripts.cli:app"
+eikonal-plot = "eikonale_explorer.scripts.plot_environment:app"
+
+[build-system]
+requires = ["uv_build>=0.9.26,<0.10.0"]
+build-backend = "uv_build"

@@ -1,0 +1,4 @@
+default_scenario: "data/scenario0.txt"
+output_dir: "outputs"
+grid_size: 128
+dt_factor: 0.5
