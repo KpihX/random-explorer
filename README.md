@@ -1,6 +1,6 @@
 # Random Explorer — INF421 Path Planning Algorithms
 
-**Auteurs** : Pacifique000 & KpihX  
+**Auteurs** : KpihX & Pacifique000
 **École Polytechnique (l'X)** — Cours INF421
 
 ![Python](https://img.shields.io/badge/Python-3.11%2B-blue)
