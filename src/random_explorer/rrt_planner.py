@@ -8,6 +8,7 @@ RRT* includes rewiring for path optimization.
 from typing import Optional, List, Tuple
 import numpy as np
 import matplotlib.pyplot as plt
+import random
 
 from tqdm import tqdm
 
@@ -272,10 +273,139 @@ class RRTPlanner:
         y = np.random.uniform(0, self.env.y_max)
         return (x, y)
     
-    def solve(self, show_progress: bool = True) -> Tuple[Optional[List[Tuple[float, float]]], float, int]:
+    
+    def _optimize_path(self, path):
+    
+        """Optimize the path using the triangular inequality.
+
+        We consider the path and we try to found a direct path,
+        from a node to another one.
+
+        Args:
+            path: Initial path 
+
+        Returns:
+            An optimized list of (x,y) points from start to end. 
+        """
+        if not path or len(path) < 3:
+            return path
+        
+        optimized = [path[0]]  
+        current_idx = 0
+        
+        while current_idx < len(path) - 1:
+
+            farthest_valid = current_idx + 1
+            
+            for target_idx in range(len(path) - 1, current_idx, -1):
+
+                node1 = Node(path[current_idx][0], path[current_idx][1])
+                node2 = Node(path[target_idx][0], path[target_idx][1])
+                
+                if not self._check_collision(node1, node2):
+                    farthest_valid = target_idx
+                    break
+            
+            optimized.append(path[farthest_valid])
+            current_idx = farthest_valid
+        
+        return optimized
+
+    def _sample_intelligent(
+        self,
+        vertex_weight: float = 0.5,
+        vertex_radius: float = 30.0,
+        boundary_offset: float = 10.0
+    ) -> Tuple[float, float]:
+        """Intelligent sampling around vertices and boundary 
+        of the obstacles.
+        
+        Randomly chooses between vertex sampling and boundary sampling
+        based on weights, providing a natural mix of both strategies.
+        
+        Args:
+            vertex_weight: Probability of choosing vertex over boundary (0-1).
+            vertex_radius: Radius around vertices for sampling.
+            boundary_offset: distance from obstacle edges.
+        
+        Returns:
+            Sampled point (x, y).
+        """
+        
+        obstacle = random.choice(self.env.obstacles)
+        
+        obs_x, obs_y, obs_lx, obs_ly = obstacle
+        
+        if random.random() < vertex_weight:
+
+            vertices = [
+                (obs_x, obs_y),
+                (obs_x + obs_lx, obs_y),
+                (obs_x, obs_y + obs_ly),
+                (obs_x + obs_lx, obs_y + obs_ly)
+            ]
+            
+            vertex = random.choice(vertices)
+            
+            angle = np.random.uniform(0, 2 * np.pi)
+            dist = np.random.uniform(0, vertex_radius)
+            
+            x = vertex[0] + dist * np.cos(angle)
+            y = vertex[1] + dist * np.sin(angle)
+        
+        else:
+
+            side = random.randint(0, 3)
+            
+            if side == 0:  
+                x = np.random.uniform(obs_x, obs_x + obs_lx)
+                y = obs_y - boundary_offset
+            elif side == 1: 
+                x = obs_x + obs_lx + boundary_offset
+                y = np.random.uniform(obs_y, obs_y + obs_ly)
+            elif side == 2:  
+                x = np.random.uniform(obs_x, obs_x + obs_lx)
+                y = obs_y + obs_ly + boundary_offset
+            else:  
+                x = obs_x - boundary_offset
+                y = np.random.uniform(obs_y, obs_y + obs_ly)
+        
+        x = np.clip(x, 0, self.env.x_max)
+        y = np.clip(y, 0, self.env.y_max)
+        
+        return (x, y)
+    
+    def _calculate_path_length(self, path: List[Tuple[float, float]]) -> float:
+        """Calculate total Euclidean length of a path.
+        
+        Args:
+            path: List of (x, y) points representing the path.
+            
+        Returns:
+            Total path length, or 0.0 if path has less than 2 points.
+        """
+        if not path or len(path) < 2:
+            return 0.0
+        
+        total_length = 0.0
+        for i in range(len(path) - 1):
+            dx = path[i+1][0] - path[i][0]
+            dy = path[i+1][1] - path[i][1]
+            total_length += np.sqrt(dx**2 + dy**2)
+        
+        return total_length
+
+    def solve(
+        self,
+        optimized: bool = False,
+        intelligent_sampling: bool = False,
+        show_progress: bool = True
+        ) -> Tuple[Optional[List[Tuple[float, float]]], float, int]:
         """Run RRT* algorithm to find a path.
         
         Args:
+            optimized: Whether to apply post-processing path optimization.
+            intelligent_sampling: Whether to use intelligent obstacle-based sampling.
             show_progress: Whether to show tqdm progress bar.
         
         Returns:
@@ -284,7 +414,6 @@ class RRTPlanner:
                 - path_length: Path length or inf if not found
                 - iterations_used: Number of iterations executed
         """
-        # Initialize tree with start node
         start_node = Node(self.env.start[0], self.env.start[1])
         self.nodes = [start_node]
         
@@ -292,12 +421,22 @@ class RRTPlanner:
         best_goal_node: Optional[Node] = None
         iterations_used = 0
         
-        iterator = tqdm(range(self.max_iter), desc="RRT*", disable=not show_progress)
+        desc_parts = ["RRT*"]
+        if intelligent_sampling:
+            desc_parts.append("intelligent")
+        if optimized:
+            desc_parts.append("optimized")
+        desc = " ".join(desc_parts) if len(desc_parts) > 1 else desc_parts[0]
+        iterator = tqdm(range(self.max_iter), desc=desc, disable=not show_progress)
         
         for iteration in iterator:
             iterations_used = iteration + 1
             
-            rand_point = self._sample_random_point()
+            # Sample using the appropriate strategy
+            if intelligent_sampling:
+                rand_point = self._sample_intelligent()
+            else:
+                rand_point = self._sample_random_point()
             
             nearest = self._get_nearest_node(rand_point)
             
@@ -328,10 +467,17 @@ class RRTPlanner:
                     if best_goal_node is None or goal_node.cost < best_goal_node.cost:
                         best_goal_node = goal_node
                         goal_reached = True
+                        
+                        if show_progress:
+                            iterator.set_postfix({"best_cost": f"{goal_node.cost:.1f}"})
         
         if goal_reached and best_goal_node is not None:
             self.final_path = self._reconstruct_path(best_goal_node)
-            self.path_length = best_goal_node.cost
+            if optimized:
+                self.final_path = self._optimize_path(self.final_path)
+                self.path_length = self._calculate_path_length(self.final_path)
+            else:
+                self.path_length = best_goal_node.cost
             return self.final_path, self.path_length, iterations_used
         
         # No path found - return closest approach
@@ -341,9 +487,14 @@ class RRTPlanner:
         if dist <= self.delta_s + self.goal_tolerance:
             self.final_path = self._reconstruct_path(closest)
             self.final_path.append(self.env.goal)
-            self.path_length = closest.cost + dist
+            if optimized:
+                self.final_path = self._optimize_path(self.final_path)
+                self.path_length = self._calculate_path_length(self.final_path)
+            else:
+                self.path_length = closest.cost + dist
             return self.final_path, self.path_length, iterations_used
         
+        # No path found at all
         self.final_path = None
         self.path_length = float('inf')
         return None, float('inf'), iterations_used

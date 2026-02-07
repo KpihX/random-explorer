@@ -132,6 +132,8 @@ class Benchmark:
     def run_rrt(
         self,
         env: Environment,
+        optimized: False,
+        intelligent: False,
         params: Optional[Dict[str, Any]] = None
     ) -> BenchmarkResult:
         """Run RRT* algorithm on an environment.
@@ -153,7 +155,7 @@ class Benchmark:
         
         # Run and time (disable progress bar in benchmark)
         start_time = time.process_time()
-        path_list, path_length, iterations = planner.solve(show_progress=True)
+        path_list, path_length, iterations = planner.solve(optimized, intelligent, show_progress=True)
         cpu_time = time.process_time() - start_time
         
         # Convert path to array
