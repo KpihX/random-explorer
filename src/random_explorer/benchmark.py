@@ -21,7 +21,7 @@ from .pso import (
     PSODimensionalLearning,
     PSOAdaptiveInertia,
 )
-from .rrt_planner import RRTPlanner
+from .rrt import RRTPlanner
 from .utils import Console
 
 
@@ -182,7 +182,7 @@ class Benchmark:
         params: Optional[Dict[str, Any]] = None
     ) -> Dict[str, Any]:
         """Run multi-robot RRT* algorithm on an environment."""
-        from .rrt_planner import MultiRobotRRTPlanner
+        from .rrt import MultiRobotRRTPlanner
         
         final_params = self.DEFAULT_RRT_PARAMS.copy()
         if params:
@@ -568,54 +568,4 @@ class Benchmark:
         return fig
 
 
-class Performance:
-    """Legacy performance class for backward compatibility.
-    
-    Deprecated: Use Benchmark class instead.
-    """
-    
-    def __init__(
-        self,
-        S: int,
-        N: int,
-        w: float,
-        c1: float,
-        c2: float,
-        max_iter: int,
-        file_path: str
-    ) -> None:
-        """Run a single PSO benchmark and display results.
-        
-        Args:
-            S: Number of particles.
-            N: Number of waypoints.
-            w: Inertia weight.
-            c1: Cognitive coefficient.
-            c2: Social coefficient.
-            max_iter: Maximum iterations.
-            file_path: Path to scenario file.
-        """
-        benchmark = Benchmark()
-        env = Environment(file_path)
-        
-        params = {
-            'num_particles': S,
-            'num_waypoints': N,
-            'max_iter': max_iter,
-            'w': w,
-            'c1': c1,
-            'c2': c2
-        }
-        
-        result = benchmark.run_pso(env, PSOPathPlanner, params)
-        result.scenario = file_path
-        
-        length_str = f"{result.path_length:.2f}" if result.path_length < float('inf') else "N/A"
-        benchmark.console.display(
-            f"Path length: {length_str}\n"
-            f"Iterations: {result.iterations}\n"
-            f"CPU time: {result.cpu_time:.4f} s\n"
-            f"Valid path: {result.is_valid}",
-            title="PSO Performance",
-            border_style="green"
-        )
+

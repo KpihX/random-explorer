@@ -7,7 +7,7 @@ Rapidly-exploring Random Trees (RRT*).
 Modules:
     environment: Environment parsing and visualization.
     pso: PSO algorithm variants (path_planner, restart, sa, dl, adaptive).
-    rrt_planner: RRT* algorithm.
+    rrt: RRT* algorithm package.
     benchmark: Performance benchmarking utilities.
     utils: Helper utilities.
 """
@@ -20,7 +20,7 @@ from .pso import (
     PSODimensionalLearning,
     PSOAdaptiveInertia,
 )
-from .rrt_planner import RRTPlanner, Node, MultiRobotRRTPlanner
+from .rrt import RRTPlanner, Node, MultiRobotRRTPlanner
 from .benchmark import Benchmark, BenchmarkResult, Performance
 from .utils import Console
 
@@ -36,6 +36,7 @@ __all__ = [
     # RRT
     'RRTPlanner',
     'Node',
+    'MultiRobotRRTPlanner',
     # Benchmark
     'Benchmark',
     'BenchmarkResult',
