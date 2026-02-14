@@ -20,7 +20,7 @@ from .pso import (
     PSODimensionalLearning,
     PSOAdaptiveInertia,
 )
-from .rrt_planner import RRTPlanner, Node
+from .rrt_planner import RRTPlanner, Node, MultiRobotRRTPlanner
 from .benchmark import Benchmark, BenchmarkResult, Performance
 from .utils import Console
 
