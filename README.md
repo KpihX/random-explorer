@@ -27,6 +27,7 @@ Le projet inclut une visualisation riche, un système de benchmarking complet, e
     *   `PSODimensionalLearning` (DL) : Apprentissage dimension par dimension pour les particules stagnantes (Xu et al., 2019).
     *   `PSOAdaptiveInertia` : Poids d'inertie linéairement décroissant + Early Stopping.
 *   **RRT\*** : Version optimisée asymptotiquement optimale du RRT avec rewiring.
+*   **Multi-Robot RRT\*** : Extension pour la planification de chemin avec plusieurs robots.
 
 ### 🛠️ Outils & Infrastructure
 *   **Visualisation** : Plotting via `matplotlib` des environnements, obstacles, chemins et arbres de recherche.
@@ -42,7 +43,6 @@ random-explorer/
 ├── data/                       # Scénarios de test (.txt) et résultats JSON
 ├── src/random_explorer/
 │   ├── environment.py          # Parsing, collisions (Liang-Barsky), affichage
-│   ├── rrt_planner.py          # Implémentation RRT*
 │   ├── benchmark.py            # Moteur de benchmark
 │   ├── pso/                    # Package des variantes PSO
 │   │   ├── path_planner.py     # PSO Base
@@ -50,6 +50,10 @@ random-explorer/
 │   │   ├── simulated_annealing.py
 │   │   ├── dimensional_learning.py
 │   │   └── adaptive_inertia.py
+│   ├── rrt/                    # Package des algorithmes RRT*
+│   │   ├── node.py             # Structure de nœud pour l'arbre
+│   │   ├── planner.py          # RRT* principal
+│   │   └── multi_robot.py      # Multi-Robot RRT*
 │   └── scripts/                # Entry points CLI
 ├── Random_Explorer.ipynb       # Rapport exécutable (Notebook Jupyter)
 ├── pyproject.toml              # Configuration et dépendances
