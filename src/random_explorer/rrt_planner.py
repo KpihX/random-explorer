@@ -10,6 +10,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import random
 import matplotlib.patches as patches
+from .utils import Console
 
 from tqdm import tqdm
 
@@ -583,26 +584,42 @@ class MultiRobotRRTPlanner:
     def _create_temporary_env(
         self,
         robot_id: int,
-        other_robot_pos: Tuple[float,float]
+        other_robot_pos: Tuple[float, float]
     ) -> Environment:
-        """Create environment with other robot as obstacle"""
-        import copy
-        temp_env = copy.deepcopy(self.env)
-
+        """Create environment with other robot as circular obstacle.
+        
+        Args:
+            robot_id: 1 or 2 (which robot we're planning for).
+            other_robot_pos: Current position of the other robot.
+        
+        Returns:
+            Modified environment with circular obstacle.
+        """
+        temp_env = object.__new__(Environment)
+        
+        temp_env.x_max = self.env.x_max
+        temp_env.y_max = self.env.y_max
+        temp_env.radius = self.env.radius
+        temp_env.start2 = self.env.start2
+        temp_env.goal2 = self.env.goal2
+        
+        temp_env.obstacles = list(self.env.obstacles)
+        
         other_x, other_y = other_robot_pos
         R = self.env.radius
-
         obs_x = other_x - R
         obs_y = other_y - R
         circular_obstacle = (obs_x, obs_y, 2 * R, 2 * R)
         temp_env.obstacles.append(circular_obstacle)
-
+        
         if robot_id == 1:
             temp_env.start = self.env.start
             temp_env.goal = self.env.goal
         else:
             temp_env.start = self.env.start2
             temp_env.goal = self.env.goal2
+        
+        temp_env.console = Console()
         
         return temp_env
     
@@ -631,8 +648,8 @@ class MultiRobotRRTPlanner:
     def solve_alternating(
         self,
         intelligent_sampling: bool = False,
-        opttimized: bool = True,
-        max_alternation: int = 5,
+        optimized: bool = True,
+        max_alternations: int = 5,  # Réduire la valeur par défaut
         show_progress: bool = True
     ) -> Tuple[
         Optional[List[Tuple[float, float]]],
@@ -642,23 +659,7 @@ class MultiRobotRRTPlanner:
         int,
         int 
     ]:
-        """Solve multi-robot problem with alternating planning.
-        
-        Args:
-            intelligent_sampling: Wheter to use intelligent obstacle-based sampling
-            optimized: Wheter to use path optimization algorithm
-            max_alternations: Maximum number of alternating iterations
-            show_progress: Wheter to show tqdm progress bar
-        
-        Returns:
-            Tuple of (path1, path2, length1, length2, iterations1, iterations2) where:
-                - path1: List of (x, y) points for robot 1 or None if not found
-                - path2: List of (x, y) points for robot 2 or None if not found
-                - length1: Path length for robot 1 or inf if not found
-                - length2: Path length for robot 2 or inf if not found 
-                - iterations1: Total iterations used for robot 1 across all alternations
-                - iterations2: Total iterations used for robot 2 across all alternations
-        """
+        """Solve multi-robot problem with alternating planning."""
         current_pos1 = self.env.start
         current_pos2 = self.env.start2
 
@@ -668,79 +669,79 @@ class MultiRobotRRTPlanner:
         desc_parts = ["Multi-Robot RRT*"]
         if intelligent_sampling:
             desc_parts.append("intelligent")
-        if opttimized:
-            desc_parts.append("otpimized")
-        desc = " ".join(desc_parts) if len(desc_parts) > 1 else desc_parts[0]
+        if optimized:
+            desc_parts.append("optimized")
+        desc = " + ".join(desc_parts)
 
         iterator = tqdm(
-            range(max_alternation),
+            range(max_alternations),
             desc=desc,
-            disable= not show_progress,
-            unit="alt" 
+            disable=not show_progress,
+            unit="alt",
+            position=0,  # Position de la barre principale
+            leave=True   # Garder la barre après completion
         )
 
         for alternation in iterator:
+            # Désactiver les barres internes pour éviter les conflits
             env1 = self._create_temporary_env(robot_id=1, other_robot_pos=current_pos2)
             planner1 = RRTPlanner(
                 env=env1,
-                max_iter =self.max_iter,
-                delta_s = self.delta_s,
-                delta_r = self.delta_r,
-                goal_bias = self.goal_bias,
-                goal_tolerance = self.goal_tolerance 
+                max_iter=self.max_iter,
+                delta_s=self.delta_s,
+                delta_r=self.delta_r,
+                goal_bias=self.goal_bias,
+                goal_tolerance=self.goal_tolerance 
             )
 
-            self.path1, self.length1, iter1  = planner1.solve(
-                optimized=opttimized,
+            self.path1, self.length1, iter1 = planner1.solve(
+                optimized=optimized,
                 intelligent_sampling=intelligent_sampling,
-                show_progress= False
+                show_progress=False  # ← Désactiver la barre interne
             )
 
             total_iterations1 += iter1
 
             if self.path1 is None:
-                if show_progress:
-                    iterator.set_postfix_str("Robot 1 failed")
+                iterator.set_postfix_str("Robot 1 failed")
                 return None, None, float('inf'), float('inf'), total_iterations1, total_iterations2
             
             env2 = self._create_temporary_env(robot_id=2, other_robot_pos=current_pos1)
             planner2 = RRTPlanner(
-                env= env2,
+                env=env2,
                 max_iter=self.max_iter,
-                delta_r = self.delta_r,
-                delta_s = self.delta_s,
-                goal_bias = self.goal_bias,
-                goal_tolerance = self.goal_tolerance  
+                delta_r=self.delta_r,
+                delta_s=self.delta_s,
+                goal_bias=self.goal_bias,
+                goal_tolerance=self.goal_tolerance  
             )
 
-            self.path2, self.length2, iter2 =planner2.solve(
-                optimized=opttimized,
+            self.path2, self.length2, iter2 = planner2.solve(
+                optimized=optimized,
                 intelligent_sampling=intelligent_sampling,
-                show_progress= False
+                show_progress=False  # ← Désactiver la barre interne
             )
 
             total_iterations2 += iter2
 
             if self.path2 is None:
-                if show_progress:
-                    iterator.set_postfix_str("Robot 2 failed")
+                iterator.set_postfix_str("Robot 2 failed")
                 return None, None, float('inf'), float('inf'), total_iterations1, total_iterations2
             
             collision = self._check_robot_collision(self.path1, self.path2)
 
-            if show_progress:
-                status = {
-                "L1": f"{self.length1:.1f}",
-                "L2": f"{self.length2:.1f}",
+            # Mettre à jour la barre avec des informations détaillées
+            status = {
+                "L1": f"{self.length1:.0f}",
+                "L2": f"{self.length2:.0f}",
                 "I1": iter1,
                 "I2": iter2,
                 "coll": "Y" if collision else "N"
-                }
-                iterator.set_postfix(status)
+            }
+            iterator.set_postfix(status)
 
             if not collision:
-                if show_progress:
-                    iterator.set_postfix_str(f"Success! L1={self.length1:.1f}, L2={self.length2:.1f}")
+                iterator.set_postfix_str(f"Success! L1={self.length1:.0f}, L2={self.length2:.0f}")
                 return self.path1, self.path2, self.length1, self.length2, total_iterations1, total_iterations2
             
             mid_idx1 = len(self.path1) // 2
@@ -748,11 +749,8 @@ class MultiRobotRRTPlanner:
             current_pos1 = self.path1[mid_idx1]
             current_pos2 = self.path2[mid_idx2]
         
-        if show_progress:
-            iterator.set_postfix_str(f"Max alternations. L1={self.length1:.1f}, L2={self.length2:.1f}")
-    
-        return self.path1, self.path2, self.length1, self.length2, total_iterations1, total_iterations2
-    
+        iterator.set_postfix_str(f"Max alternations. L1={self.length1:.0f}, L2={self.length2:.0f}")
+        return self.path1, self.path2, self.length1, self.length2, total_iterations1, total_iterations2 
 
     def plot_solution(
         self,

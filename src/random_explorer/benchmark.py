@@ -173,7 +173,7 @@ class Benchmark:
             cpu_time=cpu_time,
             path=path
         )
-    
+        
     def run_multi_robot_rrt(
         self,
         env: Environment,
@@ -181,17 +181,7 @@ class Benchmark:
         intelligent: bool = True,
         params: Optional[Dict[str, Any]] = None
     ) -> Dict[str, Any]:
-        """Run multi-robot RRT* algorithm on an environment.
-        
-        Args:
-            env: Environment with start/goal for both robots.
-            optimized: Whether to apply path optimization.
-            intelligent: Whether to use intelligent sampling.
-            params: Constructor parameters (uses defaults if None).
-        
-        Returns:
-            Dictionary containing results for both robots.
-        """
+        """Run multi-robot RRT* algorithm on an environment."""
         from .rrt_planner import MultiRobotRRTPlanner
         
         final_params = self.DEFAULT_RRT_PARAMS.copy()
@@ -208,16 +198,17 @@ class Benchmark:
         )
         
         start_time = time.process_time()
+        
         path1, path2, len1, len2, iter1, iter2 = planner.solve_alternating(
             intelligent_sampling=intelligent,
             optimized=optimized,
-            max_alternation=5,
-            show_progress=False,
+            show_progress=True
         )
+        
         cpu_time = time.process_time() - start_time
         
         return {
-            'planner': planner,  
+            'planner': planner,
             'path1': path1,
             'path2': path2,
             'length1': len1,
@@ -226,8 +217,7 @@ class Benchmark:
             'iterations2': iter2,
             'cpu_time': cpu_time,
             'success': path1 is not None and path2 is not None
-        }
-
+        }    
     def plot_multi_robot_results_grid(
         self,
         results: Dict[str, Dict[str, Any]],
@@ -236,18 +226,7 @@ class Benchmark:
         figsize_per_plot: tuple = (7, 7),
         show_safety_zones: bool = True
     ) -> Figure:
-        """Plot multiple multi-robot results in a grid layout.
-        
-        Args:
-            results: Dictionary mapping scenario names to multi-robot results.
-            envs: Dictionary mapping scenario names to Environment.
-            n_cols: Number of columns in the grid.
-            figsize_per_plot: (width, height) per subplot.
-            show_safety_zones: Whether to draw safety circles.
-        
-        Returns:
-            The matplotlib Figure object.
-        """
+        """Plot multiple multi-robot results in a grid layout."""
         import matplotlib.patches as patches
         
         n_scenarios = len(results)
@@ -266,26 +245,24 @@ class Benchmark:
             ax = axes[idx]
             env = envs[name]
             
-            if not result['success']:
-                ax.text(0.5, 0.5, f"{name}\n\nFailed to find solution",
-                    ha='center', va='center', fontsize=12, color='red')
-                ax.set_xlim(0, 1)
-                ax.set_ylim(0, 1)
-                ax.axis('off')
-                continue
-            
+            # Configuration de base (TOUJOURS afficher l'environnement)
             ax.set_xlim(0, env.x_max)
             ax.set_ylim(0, env.y_max)
             ax.set_xlabel('X', fontsize=10)
             ax.set_ylabel('Y', fontsize=10)
             ax.set_aspect('equal')
-            ax.set_title(f"{name}", fontsize=11, fontweight='bold')
+            
+            # Titre avec statut
+            status_str = "✓" if result['success'] else "✗"
+            ax.set_title(f"{name} {status_str}", fontsize=11, fontweight='bold')
             ax.grid(True, linestyle='--', alpha=0.3)
             
+            # Bordure environnement
             ax.plot([0, env.x_max, env.x_max, 0, 0],
                     [0, 0, env.y_max, env.y_max, 0],
                     'k-', linewidth=2, alpha=0.5)
             
+            # Obstacles
             for i, (xo, yo, lx, ly) in enumerate(env.obstacles):
                 rect = patches.Rectangle(
                     (xo, yo), lx, ly,
@@ -295,6 +272,7 @@ class Benchmark:
                 )
                 ax.add_patch(rect)
             
+            # Robot 1 start/goal (TOUJOURS afficher)
             ax.plot(env.start[0], env.start[1], 'go', markersize=8, 
                     markeredgecolor='darkgreen', markeredgewidth=1.5,
                     label='Start 1' if idx == 0 else None)
@@ -302,12 +280,7 @@ class Benchmark:
                     markeredgecolor='darkgreen', markeredgewidth=1.5,
                     label='Goal 1' if idx == 0 else None)
             
-            if result['path1']:
-                path1 = np.array(result['path1'])
-                ax.plot(path1[:, 0], path1[:, 1], 'g-', linewidth=2, alpha=0.8,
-                        label=f"R1 (L={result['length1']:.0f})" if idx == 0 else None)
-            
-            # Robot 2
+            # Robot 2 start/goal (TOUJOURS afficher)
             ax.plot(env.start2[0], env.start2[1], 'bo', markersize=8,
                     markeredgecolor='darkblue', markeredgewidth=1.5,
                     label='Start 2' if idx == 0 else None)
@@ -315,37 +288,52 @@ class Benchmark:
                     markeredgecolor='darkblue', markeredgewidth=1.5,
                     label='Goal 2' if idx == 0 else None)
             
-            if result['path2']:
-                path2 = np.array(result['path2'])
-                ax.plot(path2[:, 0], path2[:, 1], 'b-', linewidth=2, alpha=0.8,
-                        label=f"R2 (L={result['length2']:.0f})" if idx == 0 else None)
-            
-            # Zones de sécurité
-            if show_safety_zones:
-                R = env.radius
-                circle1 = plt.Circle(env.start, R, color='green', fill=False,
-                                    linestyle='--', linewidth=1, alpha=0.4,
-                                    label=f'Safety (R={R:.0f})' if idx == 0 else None)
-                circle2 = plt.Circle(env.start2, R, color='blue', fill=False,
-                                    linestyle='--', linewidth=1, alpha=0.4)
-                ax.add_patch(circle1)
-                ax.add_patch(circle2)
-            
-            text_str = f"L1={result['length1']:.0f}\nL2={result['length2']:.0f}"
-            ax.text(0.02, 0.98, text_str, transform=ax.transAxes,
-                fontsize=9, verticalalignment='top',
-                bbox=dict(boxstyle='round', facecolor='wheat', alpha=0.5))
+            # Afficher les chemins SI trouvés
+            if result['success']:
+                if result['path1']:
+                    path1 = np.array(result['path1'])
+                    ax.plot(path1[:, 0], path1[:, 1], 'g-', linewidth=2, alpha=0.8,
+                            label=f"R1 (L={result['length1']:.0f})" if idx == 0 else None)
+                
+                if result['path2']:
+                    path2 = np.array(result['path2'])
+                    ax.plot(path2[:, 0], path2[:, 1], 'b-', linewidth=2, alpha=0.8,
+                            label=f"R2 (L={result['length2']:.0f})" if idx == 0 else None)
+                
+                # Zones de sécurité
+                if show_safety_zones:
+                    R = env.radius
+                    circle1 = plt.Circle(env.start, R, color='green', fill=False,
+                                        linestyle='--', linewidth=1, alpha=0.4,
+                                        label=f'Safety (R={R:.0f})' if idx == 0 else None)
+                    circle2 = plt.Circle(env.start2, R, color='blue', fill=False,
+                                        linestyle='--', linewidth=1, alpha=0.4)
+                    ax.add_patch(circle1)
+                    ax.add_patch(circle2)
+                
+                # Texte avec longueurs
+                text_str = f"L1={result['length1']:.0f}\nL2={result['length2']:.0f}"
+                ax.text(0.02, 0.98, text_str, transform=ax.transAxes,
+                    fontsize=9, verticalalignment='top',
+                    bbox=dict(boxstyle='round', facecolor='lightgreen', alpha=0.7))
+            else:
+                # Afficher message d'échec sur l'environnement
+                ax.text(0.5, 0.5, "No solution found", transform=ax.transAxes,
+                    ha='center', va='center', fontsize=12, color='red',
+                    bbox=dict(boxstyle='round', facecolor='white', alpha=0.8))
         
+        # Hide unused subplots
         for idx in range(n_scenarios, len(axes)):
             axes[idx].set_visible(False)
         
+        # Legend
         if n_scenarios > 0:
             handles, labels = axes[0].get_legend_handles_labels()
             fig.legend(handles, labels, loc='upper right', fontsize=9, framealpha=0.9)
         
         plt.tight_layout()
         return fig
-
+    
     def run_all_pso_variants(
         self,
         env: Environment,
