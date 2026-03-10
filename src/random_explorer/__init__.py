@@ -21,7 +21,7 @@ from .pso import (
     PSOAdaptiveInertia,
 )
 from .rrt import RRTPlanner, Node, MultiRobotRRTPlanner
-from .benchmark import Benchmark, BenchmarkResult, Performance
+from .benchmark import Benchmark, BenchmarkResult
 from .utils import Console
 
 __all__ = [
@@ -40,7 +40,6 @@ __all__ = [
     # Benchmark
     'Benchmark',
     'BenchmarkResult',
-    'Performance',  # Legacy
     # Utilities
     'Console',
 ]

@@ -372,7 +372,9 @@ class Environment:
         return (
             self.radius > 0 and
             not self.is_collision(self.start) and
-            not self.is_collision(self.goal)
+            not self.is_collision(self.goal) and
+            not self.is_collision(self.start2) and
+            not self.is_collision(self.goal2)
         )
     
     def plot_environment(
